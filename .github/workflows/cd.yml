@@ -1,0 +1,33 @@
+name: 'Terraform CD'
+
+on:
+  workflow_run:
+    workflows: ["Terraform CI"]
+    types: [completed]
+
+jobs:
+  terraform_apply:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'release/')
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: environments/prod
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply --auto-approve
+        working-directory: environments/prod
