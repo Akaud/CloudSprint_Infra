@@ -44,8 +44,8 @@ resource "aws_db_parameter_group" "postgres_parameter_group" {
 }
 
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
   override_special = "!#$%&*()_+-=[]{}|:?"
 }
 

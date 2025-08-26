@@ -47,7 +47,7 @@ variable "tags" {
 }
 
 variable "repo_url" {
-  type = string
+  type        = string
   description = "link to ecr"
 }
 
