@@ -1,5 +1,5 @@
 module "my_app_ecr" {
-  source          = "./modules/ecr"
+  source          = "../../modules/ecr"
   repository_name = "my-app-repo-${var.ENV}"
   tags = {
     Environment = var.ENV
