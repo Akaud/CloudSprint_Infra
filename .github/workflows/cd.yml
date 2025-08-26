@@ -6,28 +6,78 @@ on:
     types: [completed]
 
 jobs:
-  terraform_apply:
-    name: 'Terraform Apply'
+  terraform_plan:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'release/')
     permissions:
       id-token: write
       contents: read
+    outputs:
+      plan_needed: ${{ steps.plan.outputs.exitcode }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.IAM_ROLE_NAME }}
+          aws-region: us-east-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        id: init
         run: terraform init
         working-directory: environments/prod
 
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -input=false -out=tfplan
+          echo "exitcode=$(echo $?)" >> $GITHUB_OUTPUT
+        working-directory: environments/prod
+        
+      - name: Save Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: environments/prod/tfplan
+          
+  terraform_apply:
+    name: 'Terraform Apply'
+    needs: terraform_plan
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    if: github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'release/') && needs.terraform_plan.outputs.plan_needed != 0
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.IAM_ROLE_NAME }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: environments/prod
+      
       - name: Terraform Apply
-        id: apply
-        run: terraform apply --auto-approve
+        run: terraform apply -auto-approve tfplan
         working-directory: environments/prod
