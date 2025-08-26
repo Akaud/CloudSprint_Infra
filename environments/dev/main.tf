@@ -14,3 +14,10 @@ module "s3" {
     Environment = var.ENV
   }
 }
+
+module "ecs" {
+  source        = "../../modules/ecs"
+  tags = {
+    Environment = var.ENV
+  }
+}
