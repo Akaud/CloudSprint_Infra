@@ -36,11 +36,11 @@ module "wagtail_media" {
   }
 }
 
-# Temporarily commented out ECS module due to permissions
-# module "ecs" {
-#   source   = "../../modules/ecs"
-#   repo_url = module.my_app_ecr.repository_url
-#   tags = {
-#     Environment = var.ENV
-#   }
-# }
+# ECS module for Wagtail CMS container
+module "ecs" {
+  source   = "../../modules/ecs"
+  repo_url = module.my_app_ecr.repository_url
+  tags = {
+    Environment = var.ENV
+  }
+}
