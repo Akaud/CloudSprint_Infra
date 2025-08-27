@@ -16,5 +16,4 @@ terraform {
 
 provider "aws" {
   region  = var.AWS_REGION
-  profile = "dev-mfa"
 }
