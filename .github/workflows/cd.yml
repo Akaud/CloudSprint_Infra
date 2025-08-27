@@ -1,15 +1,14 @@
 name: 'Terraform CD'
 
 on:
-  workflow_run:
-    workflows: ["Terraform CI"]
-    types: [completed]
+  push:
+    branches:
+      - 'release'
 
 jobs:
   terraform_apply:
     name: 'Terraform Apply'
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'release')
     permissions:
       id-token: write
       contents: read
@@ -17,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ github.ref }}
           
       - name: Configure AWS credentials from AWS account
         uses: aws-actions/configure-aws-credentials@v1
@@ -34,7 +33,7 @@ jobs:
         env:
           AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
           AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_KEY_NAME }}
-        run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
+        run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${{ secrets.AWS_REGION }}"
         working-directory: environments/prod
 
       - name: Terraform Apply
