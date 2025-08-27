@@ -6,10 +6,10 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "team3-terraform-backend-2025aug"
-    key            = "infra.tfstate"
-    region         = "eu-west-1"
-    encrypt        = true
+    bucket  = "team3-terraform-backend-2025aug"
+    key     = "infra.tfstate"
+    region  = "eu-west-1"
+    encrypt = true
   }
 }
 
