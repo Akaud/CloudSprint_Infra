@@ -1,0 +1,50 @@
+name: 'Terraform CI'
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+
+jobs:
+  terraform:
+    name: 'Terraform Checks'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set working directory
+        id: set_working_directory
+        run: |
+          case "${{ github.ref_name }}" in
+            "main"|"release/"*)
+              echo "terraform_working_directory=environments/prod" >> $GITHUB_OUTPUT
+              ;;
+            *) # Default case for all other branches
+              echo "terraform_working_directory=environments/dev" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ${{ steps.set_working_directory.outputs.terraform_working_directory }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend=false
+        working-directory: ${{ steps.set_working_directory.outputs.terraform_working_directory }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        working-directory: ${{ steps.set_working_directory.outputs.terraform_working_directory }}
