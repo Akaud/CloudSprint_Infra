@@ -56,18 +56,16 @@ resource "aws_s3_bucket_website_configuration" "this" {
 
 # Bucket policy for public read access (for static site)
 resource "aws_s3_bucket_policy" "this" {
-  count  = var.enable_static_website ? 1 : 0 # <--- Change this line
+  count  = var.enable_public_read ? 1 : 0
   bucket = aws_s3_bucket.this.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowCloudFrontAccess"
+        Sid    = "PublicReadAccess"
         Effect = "Allow"
-        Principal = {
-          CanonicalUser = aws_cloudfront_origin_access_identity.static_site[0].s3_canonical_user_id
-        }
+        Principal = "*"
         Action   = "s3:GetObject"
         Resource = "${aws_s3_bucket.this.arn}/*"
       },
