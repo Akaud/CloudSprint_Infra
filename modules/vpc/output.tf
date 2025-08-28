@@ -5,5 +5,5 @@ output "vpc_id" {
 
 output "private_subnet_ids" {
   description = "A list of the private subnet IDs"
-  value       = [aws_subnet.private.id]
+  value       = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 }

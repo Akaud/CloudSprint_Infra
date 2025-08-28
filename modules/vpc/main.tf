@@ -4,13 +4,24 @@ data "aws_vpc" "existing" {
 }
 
 # Private subnet for Aurora and ECS
-resource "aws_subnet" "private" {
+resource "aws_subnet" "private_a" {
   vpc_id            = data.aws_vpc.existing.id
   cidr_block        = "10.0.5.0/24"
   availability_zone = "${var.AWS_REGION}a"
 
   tags = {
-    Name = "private-subnet-${var.ENV}"
+    Name = "private-subnet-${var.ENV}-a"
+  }
+}
+
+# Private subnet for Aurora and ECS in AZ 'b'
+resource "aws_subnet" "private_b" {
+  vpc_id            = data.aws_vpc.existing.id
+  cidr_block        = "10.0.7.0/24" # Use a new, non-conflicting CIDR block
+  availability_zone = "${var.AWS_REGION}b"
+
+  tags = {
+    Name = "private-subnet-${var.ENV}-b"
   }
 }
 
