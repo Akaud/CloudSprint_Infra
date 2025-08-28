@@ -24,7 +24,7 @@ data "aws_subnets" "main" {
     values = [data.aws_vpc.main.id]
   }
   
-  # Filter for public subnets (for ALB/ECS)
+  # Filter for public subnets (for ECS)
   filter {
     name   = "tag:Name"
     values = ["*public*"]
@@ -39,7 +39,7 @@ resource "aws_security_group" "ecs_tasks" {
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Allow direct access from internet
   }
 
   egress {
