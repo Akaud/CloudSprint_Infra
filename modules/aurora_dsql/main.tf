@@ -73,8 +73,8 @@ resource "aws_rds_cluster" "postgres_cluster" {
   engine                        = "aurora-postgresql"
   engine_version                = "13.9"
   engine_mode                   = "provisioned"
-  database_name                 = local.db_identifier
-  master_username               = var.db_username
+  database_name                 = replace(var.db_name, "-", "_")
+  master_username               = replace(var.db_username, "-", "_")
   master_password               = random_password.db_password.result
   db_subnet_group_name          = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids        = [aws_security_group.db_security_group.id]
