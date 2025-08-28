@@ -28,20 +28,23 @@ resource "aws_security_group" "db_security_group" {
   }
 }
 
-resource "aws_db_parameter_group" "postgres_parameter_group" {
-  name   = "${local.db_identifier}-parameter-group"
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()_+-=[]{}|:?"
+}
+
+# DB Cluster Parameter Group for Aurora PostgreSQL
+resource "aws_rds_cluster_parameter_group" "postgres_cluster_parameter_group" {
+  name   = "${local.db_identifier}-cluster-parameter-group"
   family = "aurora-postgresql13"
 
   parameter {
     name  = "log_connections"
     value = "1"
   }
-}
 
-resource "random_password" "db_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()_+-=[]{}|:?"
+  tags = var.tags
 }
 
 # Add IAM role for enhanced monitoring
@@ -69,22 +72,21 @@ resource "aws_iam_role_policy_attachment" "monitoring_policy_attachment" {
 }
 
 resource "aws_rds_cluster" "postgres_cluster" {
-  cluster_identifier            = local.db_identifier
-  engine                        = "aurora-postgresql"
-  engine_version                = "13.9"
-  engine_mode                   = "provisioned"
-  database_name                 = replace(var.db_name, "-", "_")
-  master_username               = replace(var.db_username, "-", "_")
-  master_password               = random_password.db_password.result
-  db_subnet_group_name          = aws_db_subnet_group.db_subnet_group.name
-  vpc_security_group_ids        = [aws_security_group.db_security_group.id]
-  backup_retention_period       = 1
-  db_cluster_parameter_group_name = aws_db_parameter_group.postgres_parameter_group.name
-  skip_final_snapshot           = false
-  storage_encrypted             = true
-  monitoring_interval           = 60
-  # Add the monitoring role ARN here
-  monitoring_role_arn           = aws_iam_role.monitoring_role.arn
+  cluster_identifier              = local.db_identifier
+  engine                          = "aurora-postgresql"
+  engine_version                  = "13.9"
+  engine_mode                     = "provisioned"  # Changed to provisioned - serverless not available in eu-west-1
+  database_name                   = local.db_identifier
+  master_username                 = var.db_username
+  master_password                 = random_password.db_password.result
+  db_subnet_group_name            = aws_db_subnet_group.db_subnet_group.name
+  vpc_security_group_ids          = [aws_security_group.db_security_group.id]
+  backup_retention_period         = 1
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.postgres_cluster_parameter_group.name
+  skip_final_snapshot             = false
+  storage_encrypted               = true
+  monitoring_interval             = 60
+  monitoring_role_arn             = aws_iam_role.rds_monitoring_role.arn
 
   tags = var.tags
 }
@@ -136,6 +138,28 @@ resource "aws_iam_role" "db_proxy_role" {
 resource "aws_iam_role_policy_attachment" "db_proxy_policy_attachment" {
   role       = aws_iam_role.db_proxy_role.name
   policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+# IAM role for RDS monitoring
+resource "aws_iam_role" "rds_monitoring_role" {
+  name = "${local.db_identifier}-monitoring-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
+  role       = aws_iam_role.rds_monitoring_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
 resource "aws_db_proxy" "db_proxy" {
