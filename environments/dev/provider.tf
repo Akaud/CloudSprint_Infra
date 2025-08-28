@@ -10,10 +10,12 @@ terraform {
     key     = "infra.tfstate"
     region  = "eu-west-1"
     encrypt = true
+    profile = "dev-mfa"
   }
 }
 
 
 provider "aws" {
-  region = var.AWS_REGION
+  region  = var.AWS_REGION
+  profile = "dev-mfa"
 }
