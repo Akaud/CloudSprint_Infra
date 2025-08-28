@@ -1,6 +1,6 @@
 module "my_app_ecr" {
   source          = "../../modules/ecr"
-  repository_name = "my-app-repo-${var.ENV}"
+  repository_name = "team3-cloud-sprint-${var.ENV}"
   tags = {
     Environment = var.ENV
   }

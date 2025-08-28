@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_ecs_cluster" "foo" {
-  name = "white-hart"
+  name = var.cluster_name
 
   setting {
     name  = "containerInsights"

@@ -1,13 +1,13 @@
 variable "cluster_name" {
   description = "Name of the ECS cluster"
   type        = string
-  default     = "white-hart"
+  default     = "team3-cluster"
 }
 
 variable "task_family" {
   description = "Family name for the ECS task definition"
   type        = string
-  default     = "white-hart-task"
+  default     = "team3-cluster-task"
 }
 
 variable "container_image" {
