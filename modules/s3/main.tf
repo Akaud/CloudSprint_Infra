@@ -63,10 +63,10 @@ resource "aws_s3_bucket_policy" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "PublicReadForCloudFront"
+        Sid    = "AllowCloudFrontAccess"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${aws_cloudfront_origin_access_identity.static_site[0].id}"
+          CanonicalUser = aws_cloudfront_origin_access_identity.static_site[0].s3_canonical_user_id
         }
         Action   = "s3:GetObject"
         Resource = "${aws_s3_bucket.this.arn}/*"
