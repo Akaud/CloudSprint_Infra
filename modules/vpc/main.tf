@@ -1,27 +1,41 @@
 # Use existing VPC provided by team
 data "aws_vpc" "existing" {
-  id = "vpc-030d14759050848aa" # Use provided VPC
+  id = "vpc-030d14759050848aa"  # Use provided VPC
 }
 
-# Private subnet for Aurora and ECS
-resource "aws_subnet" "private" {
-  vpc_id            = data.aws_vpc.existing.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "${var.AWS_REGION}a"
-
-  tags = {
-    Name = "private-subnet-${var.ENV}"
+# Use existing private subnets instead of creating new ones
+data "aws_subnets" "private" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.existing.id]
+  }
+  
+  filter {
+    name   = "tag:Name"
+    values = ["*private*"]
   }
 }
 
-# Public subnet for ALB (if needed later)
-resource "aws_subnet" "public" {
-  vpc_id                  = data.aws_vpc.existing.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "${var.AWS_REGION}a"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "public-subnet-${var.ENV}"
+# Use existing public subnets instead of creating new ones
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.existing.id]
   }
+  
+  filter {
+    name   = "tag:Name"
+    values = ["*public*"]
+  }
+}
+
+# Get subnet details for outputs
+data "aws_subnet" "private" {
+  for_each = toset(data.aws_subnets.private.ids)
+  id       = each.value
+}
+
+data "aws_subnet" "public" {
+  for_each = toset(data.aws_subnets.public.ids)
+  id       = each.value
 }
