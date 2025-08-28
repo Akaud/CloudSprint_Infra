@@ -1,0 +1,79 @@
+name: Deploy to S3 & CloudFront
+
+on:
+  push:
+    branches: 
+    - dev-pipeline
+    - develop
+    - main
+  workflow_dispatch:
+
+jobs:
+  deploy_to_s3:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+         role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+         aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Checkout Wagtail repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.WAGTAIL_REPO }}
+          token: ${{ secrets.WAGTAIL_TOKEN }}
+          path: wagtail-source
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Wagtail dependencies
+        run: |
+          cd wagtail-source
+          pip install -r requirements.txt
+
+      - name: Collect static files from Wagtail
+        run: |
+          cd wagtail-source
+          python manage.py collectstatic --noinput
+
+      - name: Create sync directories
+        run: |
+          mkdir -p modules/s3/static
+          mkdir -p modules/s3/media
+
+      - name: Copy files from Wagtail
+        run: |
+          cp -r wagtail-source/staticfiles/* modules/s3/static/
+          cp -r wagtail-source/media/* modules/s3/media/
+
+      - name: Sync static files to Static bucket
+        run: |
+          aws s3 sync modules/s3/static/ s3://${{ vars.S3_STATIC_BUCKET_NAME }}/ --delete
+          echo "✅ Static files synced to Static bucket"
+
+      - name: Sync media files to Media bucket
+        run: |
+          aws s3 sync modules/s3/media/ s3://${{ vars.S3_MEDIA_BUCKET_NAME }}/ --delete
+          echo "✅ Media files synced to Media bucket"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          echo "✅ CloudFront cache invalidated"
+
+      - name: Success message
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "📁 Static files uploaded to: ${{ vars.S3_STATIC_BUCKET_NAME }}"
+          echo "📁 Media files uploaded to: ${{ vars.S3_MEDIA_BUCKET_NAME }}"
+          echo "☁️ CloudFront updated: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
