@@ -23,7 +23,7 @@ data "aws_subnets" "main" {
     name   = "vpc-id"
     values = [data.aws_vpc.main.id]
   }
-
+  
   # Filter for public subnets (for ALB/ECS)
   filter {
     name   = "tag:Name"
@@ -31,100 +31,17 @@ data "aws_subnets" "main" {
   }
 }
 
-# --------------------------------------------------------------------------------
-# NEW RESOURCES FOR APPLICATION LOAD BALANCER
-# --------------------------------------------------------------------------------
-
-# ALB Security Group: This security group allows incoming HTTP traffic on port 80.
-# The security group will be attached to the ALB itself.
-resource "aws_security_group" "alb" {
-  name   = "alb-sg"
-  vpc_id = data.aws_vpc.main.id
-
-  # Ingress rule to allow all HTTP traffic from anywhere
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Egress rule to allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = var.tags
-}
-
-# ALB itself
-resource "aws_lb" "main" {
-  name               = "${var.cluster_name}-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = data.aws_subnets.main.ids
-
-  tags = var.tags
-}
-
-# ALB Target Group: The target group is where the ALB sends traffic.
-# ECS Fargate tasks with `awsvpc` network mode use `target_type = "ip"`.
-resource "aws_lb_target_group" "app" {
-  name        = "${var.cluster_name}-tg"
-  port        = var.container_port
-  protocol    = "HTTP"
-  vpc_id      = data.aws_vpc.main.id
-  target_type = "ip"
-
-  # Health check configuration to ensure the ALB only sends traffic to healthy tasks
-  health_check {
-    healthy_threshold   = 3
-    interval            = 30
-    protocol            = "HTTP"
-    path                = "/"
-    timeout             = 5
-    unhealthy_threshold = 3
-  }
-
-  tags = var.tags
-}
-
-# ALB Listener: The listener checks for connection requests and forwards them to a target group.
-# This listener listens on port 80 and forwards to our `app` target group.
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app.arn
-  }
-}
-
-# --------------------------------------------------------------------------------
-# MODIFIED RESOURCES
-# --------------------------------------------------------------------------------
-
-# ECS Task Security Group: Now, this security group should only allow traffic from the ALB.
-# The public access is now handled by the ALB, not directly on the tasks.
 resource "aws_security_group" "ecs_tasks" {
   name   = "ecs-tasks-sg"
   vpc_id = data.aws_vpc.main.id
 
-  # Ingress rule to only allow traffic from the ALB's security group
   ingress {
-    from_port       = var.container_port
-    to_port         = var.container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    from_port   = var.container_port
+    to_port     = var.container_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Egress rule to allow all outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
@@ -174,7 +91,6 @@ resource "aws_ecs_task_definition" "app" {
   tags = var.tags
 }
 
-# ECS Service: The `load_balancer` block is added and the `assign_public_ip` is set to `false`.
 resource "aws_ecs_service" "app" {
   name            = "${var.cluster_name}-service"
   cluster         = aws_ecs_cluster.foo.id
@@ -183,19 +99,11 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    # The tasks are placed in private subnets, but the ALB will be in the public ones.
-    subnets         = data.aws_subnets.main.ids
-    security_groups = [aws_security_group.ecs_tasks.id]
-    # Set this to false since traffic is now routed through the ALB.
-    assign_public_ip = false
-  }
-
-  # This block attaches the service to the ALB target group.
-  load_balancer {
-    target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "app" # Must match the container name in the task definition
-    container_port   = var.container_port
+    subnets          = data.aws_subnets.main.ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
   }
 
   tags = var.tags
 }
+
