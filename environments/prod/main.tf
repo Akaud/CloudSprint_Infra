@@ -58,8 +58,9 @@ module "aurora" {
 }
 
 module "vpc" {
-  source = "../../modules/vpc"
-  ENV    = var.ENV
+  source     = "../../modules/vpc"
+  ENV        = var.ENV
+  AWS_REGION = var.AWS_REGION
   tags = {
     Environment = var.ENV
   }

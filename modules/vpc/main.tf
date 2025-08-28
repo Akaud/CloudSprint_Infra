@@ -11,11 +11,9 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "${data.aws_region.current.name}a"
+  availability_zone = var.AWS_REGION
 
   tags = {
     Name = "private-subnet-${var.ENV}"
   }
 }
-
-data "aws_region" "current" {}
