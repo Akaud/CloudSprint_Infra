@@ -54,22 +54,33 @@ resource "aws_s3_bucket_website_configuration" "this" {
   }
 }
 
+
+locals {
+  create_static_site_resources = var.enable_static_website
+}
+
+# Bucket policy for public read access (for static site)
+resource "aws_cloudfront_origin_access_identity" "static_site" {
+  for_each = local.create_static_site_resources ? { "oai" : "oai" } : {}
+  comment  = "OAI for ${aws_s3_bucket.this.bucket}"
+}
+
 # Bucket policy for public read access (for static site)
 resource "aws_s3_bucket_policy" "this" {
-  count  = var.enable_public_read ? 1 : 0
-  bucket = aws_s3_bucket.this.id
+  for_each = local.create_static_site_resources ? { "policy" : "policy" } : {}
+  bucket   = aws_s3_bucket.this.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "PublicReadForCloudFront"
-        Effect = "Allow"
+        Sid       = "PublicReadForCloudFront"
+        Effect    = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${aws_cloudfront_origin_access_identity.static_site[0].id}"
+          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${aws_cloudfront_origin_access_identity.static_site["oai"].id}"
         }
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.this.arn}/*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.this.arn}/*"
       },
     ]
   })
