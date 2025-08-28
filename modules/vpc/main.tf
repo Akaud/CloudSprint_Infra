@@ -1,6 +1,6 @@
 # Use existing VPC provided by team
 data "aws_vpc" "existing" {
-  id = "vpc-030d14759050848aa"  # Use provided VPC
+  id = "vpc-030d14759050848aa" # Use provided VPC
 }
 
 # Private subnet for Aurora and ECS
