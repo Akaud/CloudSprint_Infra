@@ -48,7 +48,7 @@ resource "aws_rds_cluster" "postgres_cluster" {
   cluster_identifier              = local.db_identifier
   engine                          = "aurora-postgresql"
   engine_version                  = "13.9"
-  engine_mode                     = "serverless"
+  engine_mode                     = "provisioned"  # Changed to provisioned - serverless not available in eu-west-1
   database_name                   = local.db_identifier
   master_username                 = var.db_username
   master_password                 = random_password.db_password.result
@@ -57,17 +57,25 @@ resource "aws_rds_cluster" "postgres_cluster" {
   backup_retention_period         = 1
   db_cluster_parameter_group_name = aws_db_parameter_group.postgres_parameter_group.name
   skip_final_snapshot             = false
+  storage_encrypted               = true
+  monitoring_interval             = 60
 
-  # Serverless v1 scaling configuration
-  scaling_configuration {
-    auto_pause               = true
-    min_capacity             = 1    # Minimum 1 ACU (Serverless v1 requires integers)
-    max_capacity             = 2    # Maximum 2 ACU for dev
-    seconds_until_auto_pause = 300  # Auto-pause after 5 minutes
-    timeout_action           = "ForceApplyCapacityChange"
-  }
+  tags = var.tags
+}
 
+# Aurora instance for provisioned mode
+resource "aws_rds_cluster_instance" "postgres_instance" {
+  identifier         = "${local.db_identifier}-instance"
+  cluster_identifier = aws_rds_cluster.postgres_cluster.id
+  instance_class     = "db.t3.micro"  # Small instance for dev environment
+  engine             = "aurora-postgresql"
+  engine_version     = "13.9"
+  db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
   monitoring_interval = 60
+  auto_minor_version_upgrade = true
+  publicly_accessible = false
+
+  tags = var.tags
 }
 
 resource "aws_secretsmanager_secret" "db_secret" {
