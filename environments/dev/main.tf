@@ -40,6 +40,15 @@ resource "random_string" "bucket_suffix" {
   upper   = false
 }
 
+module "vpc" {
+  source     = "../../modules/vpc"
+  ENV        = var.ENV
+  AWS_REGION = var.AWS_REGION
+  tags = {
+    Environment = var.ENV
+  }
+}
+
 module "ecs" {
   source   = "../../modules/ecs"
   repo_url = module.my_app_ecr.repository_url
@@ -49,18 +58,10 @@ module "ecs" {
 }
 
 module "aurora" {
-  source             = "../../modules/aurora_dsql"
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  tags = {
-    Environment = var.ENV
-  }
-}
-
-module "vpc" {
-  source     = "../../modules/vpc"
-  ENV        = var.ENV
-  AWS_REGION = var.AWS_REGION
+  source                 = "../../modules/aurora_dsql"
+  vpc_id                 = module.vpc.vpc_id
+  private_subnet_ids     = module.vpc.private_subnet_ids
+  ecs_security_group_ids = [module.ecs.security_group_id]
   tags = {
     Environment = var.ENV
   }

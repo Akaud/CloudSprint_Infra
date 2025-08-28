@@ -8,6 +8,12 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
+variable "ecs_security_group_ids" {
+  description = "List of ECS security group IDs that can access the database."
+  type        = list(string)
+  default     = []
+}
+
 variable "db_name" {
   description = "The name for the database and its resources."
   type        = string
