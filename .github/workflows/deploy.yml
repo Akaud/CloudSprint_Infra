@@ -21,13 +21,13 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-         role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-         aws-region: ${{ vars.AWS_REGION }}
+         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+         aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Checkout Wagtail repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.WAGTAIL_REPO }}
+          repository: ${{ secrets.WAGTAIL_REPO }}
           token: ${{ secrets.WAGTAIL_TOKEN }}
           path: wagtail-source
 
@@ -58,22 +58,22 @@ jobs:
 
       - name: Sync static files to Static bucket
         run: |
-          aws s3 sync modules/s3/static/ s3://${{ vars.S3_STATIC_BUCKET_NAME }}/ --delete
+          aws s3 sync modules/s3/static/ s3://${{ secrets.S3_STATIC_BUCKET_NAME }}/ --delete
           echo "✅ Static files synced to Static bucket"
 
       - name: Sync media files to Media bucket
         run: |
-          aws s3 sync modules/s3/media/ s3://${{ vars.S3_MEDIA_BUCKET_NAME }}/ --delete
+          aws s3 sync modules/s3/media/ s3://${{ secrets.S3_MEDIA_BUCKET_NAME }}/ --delete
           echo "✅ Media files synced to Media bucket"
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
           echo "✅ CloudFront cache invalidated"
 
       - name: Success message
         run: |
           echo "🚀 Deployment completed successfully!"
-          echo "📁 Static files uploaded to: ${{ vars.S3_STATIC_BUCKET_NAME }}"
-          echo "📁 Media files uploaded to: ${{ vars.S3_MEDIA_BUCKET_NAME }}"
-          echo "☁️ CloudFront updated: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "📁 Static files uploaded to: ${{ secrets.S3_STATIC_BUCKET_NAME }}"
+          echo "📁 Media files uploaded to: ${{ secrets.S3_MEDIA_BUCKET_NAME }}"
+          echo "☁️ CloudFront updated: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
