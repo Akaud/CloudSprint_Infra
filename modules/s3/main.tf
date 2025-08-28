@@ -63,13 +63,13 @@ resource "aws_s3_bucket_policy" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "CloudFrontAccess"
-        Effect    = "Allow"
+        Sid    = "CloudFrontAccess"
+        Effect = "Allow"
         Principal = {
           AWS = var.enable_static_website ? aws_cloudfront_origin_access_identity.static_site[0].iam_arn : "*"
         }
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.this.arn}/*"
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.this.arn}/*"
       },
     ]
   })
@@ -83,7 +83,7 @@ resource "aws_cloudfront_distribution" "static_site" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  price_class         = "PriceClass_100"  # Use only North America and Europe
+  price_class         = "PriceClass_100" # Use only North America and Europe
 
   origin {
     domain_name = aws_s3_bucket.this.bucket_regional_domain_name
@@ -131,8 +131,8 @@ resource "aws_cloudfront_distribution" "static_site" {
 
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
-    default_ttl            = 86400  # 24 hours for assets
-    max_ttl                = 31536000  # 1 year
+    default_ttl            = 86400    # 24 hours for assets
+    max_ttl                = 31536000 # 1 year
 
     compress = true
   }
