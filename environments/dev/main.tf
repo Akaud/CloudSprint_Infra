@@ -51,6 +51,7 @@ module "vpc" {
 
 module "ecs" {
   source   = "../../modules/ecs"
+  vpc_id   = module.vpc.vpc_id
   repo_url = module.my_app_ecr.repository_url
   tags = {
     Environment = var.ENV
