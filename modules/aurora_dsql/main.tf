@@ -54,6 +54,30 @@ resource "aws_rds_cluster_parameter_group" "postgres_cluster_parameter_group" {
   tags = var.tags
 }
 
+# Add IAM role for enhanced monitoring
+resource "aws_iam_role" "monitoring_role" {
+  name = "${local.db_identifier}-monitoring-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+# Attach policy to the monitoring role
+resource "aws_iam_role_policy_attachment" "monitoring_policy_attachment" {
+  role       = aws_iam_role.monitoring_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
 resource "aws_rds_cluster" "postgres_cluster" {
   cluster_identifier              = replace(local.db_identifier, "_", "-")
   engine                          = "aurora-postgresql"
@@ -147,11 +171,11 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
 }
 
 resource "aws_db_proxy" "db_proxy" {
-  name                   = local.db_proxy_name
-  engine_family          = "POSTGRESQL"
+  name                  = local.db_proxy_name
+  engine_family         = "POSTGRESQL"
   vpc_security_group_ids = [aws_security_group.db_security_group.id]
-  vpc_subnet_ids         = var.private_subnet_ids
-  role_arn               = aws_iam_role.db_proxy_role.arn
+  vpc_subnet_ids        = var.private_subnet_ids
+  role_arn              = aws_iam_role.db_proxy_role.arn
   auth {
     auth_scheme = "SECRETS"
     secret_arn  = aws_secretsmanager_secret.db_secret.arn
