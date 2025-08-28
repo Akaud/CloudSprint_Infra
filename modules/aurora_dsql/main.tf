@@ -1,16 +1,23 @@
 locals {
   db_identifier = var.db_name
-  db_proxy_name = "${local.db_identifier}-proxy"
+  db_proxy_name = "${replace(local.db_identifier, "_", "-")}-proxy"
+}
+
+# Random string for unique resource names
+resource "random_string" "unique_suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 resource "aws_db_subnet_group" "db_subnet_group" {
-  name        = "${local.db_identifier}-subnet-group"
+  name        = "${replace(local.db_identifier, "_", "-")}-subnet-group"
   subnet_ids  = var.private_subnet_ids
   description = "A subnet group for the PostgreSQL database."
 }
 
 resource "aws_security_group" "db_security_group" {
-  name        = "${local.db_identifier}-sg"
+  name        = "${replace(local.db_identifier, "_", "-")}-sg"
   description = "Security group for the PostgreSQL database"
   vpc_id      = var.vpc_id
   ingress {
@@ -36,7 +43,7 @@ resource "random_password" "db_password" {
 
 # DB Cluster Parameter Group for Aurora PostgreSQL
 resource "aws_rds_cluster_parameter_group" "postgres_cluster_parameter_group" {
-  name   = "${local.db_identifier}-cluster-parameter-group"
+  name   = "${replace(local.db_identifier, "_", "-")}-cluster-parameter-group"
   family = "aurora-postgresql13"
 
   parameter {
@@ -72,7 +79,7 @@ resource "aws_iam_role_policy_attachment" "monitoring_policy_attachment" {
 }
 
 resource "aws_rds_cluster" "postgres_cluster" {
-  cluster_identifier              = local.db_identifier
+  cluster_identifier              = replace(local.db_identifier, "_", "-")
   engine                          = "aurora-postgresql"
   engine_version                  = "13.9"
   engine_mode                     = "provisioned"  # Changed to provisioned - serverless not available in eu-west-1
@@ -93,13 +100,14 @@ resource "aws_rds_cluster" "postgres_cluster" {
 
 # Aurora instance for provisioned mode
 resource "aws_rds_cluster_instance" "postgres_instance" {
-  identifier         = "${local.db_identifier}-instance"
+  identifier         = "${replace(local.db_identifier, "_", "-")}-instance"
   cluster_identifier = aws_rds_cluster.postgres_cluster.id
-  instance_class     = "db.t3.micro"
+  instance_class     = "db.r5.large"  # Supported instance class for Aurora PostgreSQL
   engine             = "aurora-postgresql"
   engine_version     = "13.9"
   db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
   monitoring_interval = 60
+  monitoring_role_arn = aws_iam_role.rds_monitoring_role.arn
   auto_minor_version_upgrade = true
   publicly_accessible = false
 
@@ -107,7 +115,7 @@ resource "aws_rds_cluster_instance" "postgres_instance" {
 }
 
 resource "aws_secretsmanager_secret" "db_secret" {
-  name        = "${local.db_identifier}-secret"
+  name        = "${replace(local.db_identifier, "_", "-")}-secret-${random_string.unique_suffix.result}"
   description = "DB credentials for RDS Proxy"
 }
 
@@ -120,7 +128,7 @@ resource "aws_secretsmanager_secret_version" "db_secret_version" {
 }
 
 resource "aws_iam_role" "db_proxy_role" {
-  name = "${local.db_identifier}-proxy-role"
+  name = "${replace(local.db_identifier, "_", "-")}-proxy-role-${random_string.unique_suffix.result}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -142,7 +150,7 @@ resource "aws_iam_role_policy_attachment" "db_proxy_policy_attachment" {
 
 # IAM role for RDS monitoring
 resource "aws_iam_role" "rds_monitoring_role" {
-  name = "${local.db_identifier}-monitoring-role"
+  name = "${replace(local.db_identifier, "_", "-")}-monitoring-role-${random_string.unique_suffix.result}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

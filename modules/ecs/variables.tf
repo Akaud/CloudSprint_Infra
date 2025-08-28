@@ -1,3 +1,8 @@
+variable "vpc_id" {
+  description = "VPC ID where ECS resources will be created"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "Name of the ECS cluster"
   type        = string

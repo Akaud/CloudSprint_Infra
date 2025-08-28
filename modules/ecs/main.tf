@@ -13,20 +13,27 @@ resource "aws_ecs_cluster" "foo" {
   tags = var.tags
 }
 
-data "aws_vpc" "default" {
-  default = true
+# Use VPC ID passed as variable instead of default VPC
+data "aws_vpc" "main" {
+  id = var.vpc_id
 }
 
-data "aws_subnets" "default" {
+data "aws_subnets" "main" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    values = [data.aws_vpc.main.id]
+  }
+  
+  # Filter for public subnets (for ALB/ECS)
+  filter {
+    name   = "tag:Name"
+    values = ["*public*"]
   }
 }
 
 resource "aws_security_group" "ecs_tasks" {
   name   = "ecs-tasks-sg"
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = data.aws_vpc.main.id
 
   ingress {
     from_port   = var.container_port
@@ -92,7 +99,7 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = data.aws_subnets.default.ids
+    subnets          = data.aws_subnets.main.ids
     security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = true
   }
