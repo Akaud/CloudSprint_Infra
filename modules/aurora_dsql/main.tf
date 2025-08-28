@@ -82,7 +82,7 @@ resource "aws_rds_cluster" "postgres_cluster" {
   cluster_identifier              = replace(local.db_identifier, "_", "-")
   engine                          = "aurora-postgresql"
   engine_version                  = "13.9"
-  engine_mode                     = "provisioned"  # Changed to provisioned - serverless not available in eu-west-1
+  engine_mode                     = "provisioned" # Changed to provisioned - serverless not available in eu-west-1
   database_name                   = local.db_identifier
   master_username                 = var.db_username
   master_password                 = random_password.db_password.result
@@ -100,16 +100,16 @@ resource "aws_rds_cluster" "postgres_cluster" {
 
 # Aurora instance for provisioned mode
 resource "aws_rds_cluster_instance" "postgres_instance" {
-  identifier         = "${replace(local.db_identifier, "_", "-")}-instance"
-  cluster_identifier = aws_rds_cluster.postgres_cluster.id
-  instance_class     = "db.r5.large"  # Supported instance class for Aurora PostgreSQL
-  engine             = "aurora-postgresql"
-  engine_version     = "13.9"
-  db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
-  monitoring_interval = 60
-  monitoring_role_arn = aws_iam_role.rds_monitoring_role.arn
+  identifier                 = "${replace(local.db_identifier, "_", "-")}-instance"
+  cluster_identifier         = aws_rds_cluster.postgres_cluster.id
+  instance_class             = "db.r5.large" # Supported instance class for Aurora PostgreSQL
+  engine                     = "aurora-postgresql"
+  engine_version             = "13.9"
+  db_subnet_group_name       = aws_db_subnet_group.db_subnet_group.name
+  monitoring_interval        = 60
+  monitoring_role_arn        = aws_iam_role.rds_monitoring_role.arn
   auto_minor_version_upgrade = true
-  publicly_accessible = false
+  publicly_accessible        = false
 
   tags = var.tags
 }
@@ -171,11 +171,11 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
 }
 
 resource "aws_db_proxy" "db_proxy" {
-  name                  = local.db_proxy_name
-  engine_family         = "POSTGRESQL"
+  name                   = local.db_proxy_name
+  engine_family          = "POSTGRESQL"
   vpc_security_group_ids = [aws_security_group.db_security_group.id]
-  vpc_subnet_ids        = var.private_subnet_ids
-  role_arn              = aws_iam_role.db_proxy_role.arn
+  vpc_subnet_ids         = var.private_subnet_ids
+  role_arn               = aws_iam_role.db_proxy_role.arn
   auth {
     auth_scheme = "SECRETS"
     secret_arn  = aws_secretsmanager_secret.db_secret.arn
