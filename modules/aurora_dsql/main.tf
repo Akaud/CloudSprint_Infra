@@ -14,11 +14,11 @@ resource "aws_security_group" "db_security_group" {
   description = "Security group for the PostgreSQL database"
   vpc_id      = var.vpc_id
   ingress {
-    description     = "Allow traffic from a specified security group"
+    description     = "Allow traffic from ECS security group"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.db_security_group.id]
+    security_groups = var.ecs_security_group_ids
   }
   egress {
     from_port   = 0
