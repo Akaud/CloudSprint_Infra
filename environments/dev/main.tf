@@ -6,7 +6,6 @@ module "my_app_ecr" {
   }
 }
 
-# Wagtail static site bucket
 module "wagtail_static_site" {
   source                = "../../modules/s3"
   bucket_name           = "wagtail-static-site-${var.ENV}-${random_string.bucket_suffix.result}"
@@ -21,7 +20,6 @@ module "wagtail_static_site" {
   }
 }
 
-# Wagtail media files bucket
 module "wagtail_media" {
   source                = "../../modules/s3"
   bucket_name           = "wagtail-media-${var.ENV}-${random_string.bucket_suffix.result}"
@@ -36,14 +34,12 @@ module "wagtail_media" {
   }
 }
 
-# Random string for unique bucket names
 resource "random_string" "bucket_suffix" {
   length  = 8
   special = false
   upper   = false
 }
 
-# ECS module for Wagtail CMS container
 module "ecs" {
   source   = "../../modules/ecs"
   repo_url = module.my_app_ecr.repository_url
@@ -53,8 +49,8 @@ module "ecs" {
 }
 
 module "aurora" {
-  source             = "../../modules/aurora_dsql"
-  vpc_id             = module.vpc.vpc_id
+  source   = "../../modules/aurora_dsql"
+  vpc_id   = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   tags = {
     Environment = var.ENV
@@ -62,8 +58,8 @@ module "aurora" {
 }
 
 module "vpc" {
-  source = "../../modules/vpc"
-  ENV    = var.ENV
+  source   = "../../modules/vpc"
+  ENV = var.ENV
   tags = {
     Environment = var.ENV
   }
