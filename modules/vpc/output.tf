@@ -4,21 +4,21 @@ output "vpc_id" {
 }
 
 output "private_subnet_ids" {
-  description = "List of existing private subnet IDs"
-  value       = data.aws_subnets.private.ids
+  description = "List of private subnet IDs"
+  value       = [aws_subnet.private_a.id, aws_subnet.private_b.id]
 }
 
 output "public_subnet_ids" {
-  description = "List of existing public subnet IDs"
-  value       = data.aws_subnets.public.ids
+  description = "List of public subnet IDs"
+  value       = [aws_subnet.public.id]
 }
 
 output "private_subnet_cidrs" {
-  description = "List of existing private subnet CIDR blocks"
-  value       = [for subnet in data.aws_subnet.private : subnet.cidr_block]
+  description = "List of private subnet CIDR blocks"
+  value       = [aws_subnet.private_a.cidr_block, aws_subnet.private_b.cidr_block]
 }
 
 output "public_subnet_cidrs" {
-  description = "List of existing public subnet CIDR blocks"
-  value       = [for subnet in data.aws_subnet.public : subnet.cidr_block]
+  description = "List of public subnet CIDR blocks"
+  value       = [aws_subnet.public.cidr_block]
 }
