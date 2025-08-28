@@ -58,14 +58,12 @@ resource "aws_rds_cluster" "postgres_cluster" {
   db_cluster_parameter_group_name = aws_db_parameter_group.postgres_parameter_group.name
   skip_final_snapshot             = false
 
-  serverlessv2_scaling_configuration {
-    min_capacity = 0.5
-    max_capacity = 2.0
-  }
-
+  # Serverless v1 scaling configuration
   scaling_configuration {
     auto_pause               = true
-    seconds_until_auto_pause = 300
+    min_capacity             = 1    # Minimum 1 ACU (Serverless v1 requires integers)
+    max_capacity             = 2    # Maximum 2 ACU for dev
+    seconds_until_auto_pause = 300  # Auto-pause after 5 minutes
     timeout_action           = "ForceApplyCapacityChange"
   }
 
