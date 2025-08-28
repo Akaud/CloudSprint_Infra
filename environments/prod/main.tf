@@ -49,8 +49,8 @@ module "ecs" {
 }
 
 module "aurora" {
-  source   = "../../modules/aurora_dsql"
-  vpc_id   = module.vpc.vpc_id
+  source             = "../../modules/aurora_dsql"
+  vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   tags = {
     Environment = var.ENV
@@ -58,8 +58,8 @@ module "aurora" {
 }
 
 module "vpc" {
-  source   = "../../modules/vpc"
-  ENV = var.ENV
+  source = "../../modules/vpc"
+  ENV    = var.ENV
   tags = {
     Environment = var.ENV
   }
