@@ -33,13 +33,16 @@ resource "aws_db_parameter_group" "postgres_parameter_group" {
   family = "aurora-postgresql13"
 
   parameter {
-    name  = "rds.force_ssl"
-    value = "1" // Enforces SSL-only connections
-  }
-
-  parameter {
     name  = "log_connections"
     value = "1"
+  }
+  parameter {
+    name  = "ssl"
+    value = "1"
+  }
+  parameter {
+    name  = "ssl_ciphers"
+    value = "HIGH:MEDIUM:+3DES"
   }
 }
 
