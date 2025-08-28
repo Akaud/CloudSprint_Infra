@@ -30,10 +30,10 @@ output "security_group_id" {
 
 output "vpc_id" {
   description = "VPC used by the service"
-  value       = data.aws_vpc.default.id
+  value       = data.aws_vpc.main.id
 }
 
 output "subnet_ids" {
   description = "Subnets where tasks can run"
-  value       = data.aws_subnets.default.ids
+  value       = data.aws_subnets.main.ids
 }

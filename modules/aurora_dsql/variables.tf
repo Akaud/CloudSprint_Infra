@@ -17,13 +17,13 @@ variable "ecs_security_group_ids" {
 variable "db_name" {
   description = "The name for the database and its resources."
   type        = string
-  default     = "cloudsprint-app-db"
+  default     = "cloudsprint_app_db"
 }
 
 variable "db_username" {
   description = "The master username for the database."
   type        = string
-  default     = "cloudsprint-app-db-user"
+  default     = "cloudsprint_app_db_user"
 }
 
 variable "tags" {
