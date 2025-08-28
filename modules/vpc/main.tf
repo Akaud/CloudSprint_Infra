@@ -6,7 +6,7 @@ data "aws_vpc" "existing" {
 # Private subnet for Aurora and ECS
 resource "aws_subnet" "private" {
   vpc_id            = data.aws_vpc.existing.id
-  cidr_block        = "10.0.3.0/24"
+  cidr_block        = "10.0.5.0/24"
   availability_zone = "${var.AWS_REGION}a"
 
   tags = {
@@ -17,7 +17,7 @@ resource "aws_subnet" "private" {
 # Public subnet for ALB (if needed later)
 resource "aws_subnet" "public" {
   vpc_id                  = data.aws_vpc.existing.id
-  cidr_block              = "10.0.4.0/24"
+  cidr_block              = "10.0.6.0/24"
   availability_zone       = "${var.AWS_REGION}a"
   map_public_ip_on_launch = true
 
