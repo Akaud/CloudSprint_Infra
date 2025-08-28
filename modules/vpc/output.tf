@@ -1,6 +1,6 @@
 output "vpc_id" {
   description = "The ID of the existing VPC"
-  value       = local.vpc_id
+  value       = data.aws_vpc.existing.id
 }
 
 output "private_subnet_ids" {
