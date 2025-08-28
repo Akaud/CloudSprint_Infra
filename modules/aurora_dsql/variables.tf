@@ -17,4 +17,11 @@ variable "db_name" {
 variable "db_username" {
   description = "The master username for the database."
   type        = string
+  default     = "cloudsprint-app-db-user"
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the ECR repository."
+  type        = map(string)
+  default     = {}
 }

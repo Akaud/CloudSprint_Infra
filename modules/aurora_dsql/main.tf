@@ -34,7 +34,7 @@ resource "aws_db_parameter_group" "postgres_parameter_group" {
 
   parameter {
     name  = "rds.force_ssl"
-    value = "1"
+    value = "1" // Enforces SSL-only connections
   }
 
   parameter {
@@ -61,12 +61,20 @@ resource "aws_rds_cluster" "postgres_cluster" {
   vpc_security_group_ids          = [aws_security_group.db_security_group.id]
   backup_retention_period         = 1
   db_cluster_parameter_group_name = aws_db_parameter_group.postgres_parameter_group.name
-  skip_final_snapshot             = true # Set to false in production
+  skip_final_snapshot             = false
 
   serverlessv2_scaling_configuration {
     min_capacity = 0.5
     max_capacity = 2.0
   }
+
+  scaling_configuration {
+    auto_pause               = true
+    seconds_until_auto_pause = 300
+    timeout_action           = "ForceApplyCapacityChange"
+  }
+
+  monitoring_interval = 60
 }
 
 resource "aws_secretsmanager_secret" "db_secret" {
