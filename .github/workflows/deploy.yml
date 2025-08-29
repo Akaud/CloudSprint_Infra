@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.WAGTAIL_REPO }}
+          ref: develop/landing-page
           token: ${{ secrets.WAGTAIL_TOKEN }}
           path: wagtail-source
 
