@@ -13,10 +13,11 @@ output "db_instance_endpoint" {
   value       = aws_rds_cluster_instance.postgres_instance.endpoint
 }
 
-output "db_proxy_endpoint" {
-  description = "The RDS Proxy endpoint for connection pooling."
-  value       = aws_db_proxy.db_proxy.endpoint
-}
+# Temporarily commented out due to proxy dependency
+# output "db_proxy_endpoint" {
+#   description = "The RDS Proxy endpoint for connection pooling."
+#   value       = aws_db_proxy.db_proxy.endpoint
+# }
 
 output "db_name" {
   description = "The name of the provisioned database."

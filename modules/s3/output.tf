@@ -27,3 +27,8 @@ output "cloudfront_url" {
   description = "CloudFront distribution URL (if static website hosting is enabled)"
   value       = var.enable_static_website ? "https://${aws_cloudfront_distribution.static_site[0].domain_name}" : null
 }
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID (if static website hosting is enabled)"
+  value       = var.enable_static_website ? aws_cloudfront_distribution.static_site[0].id : null
+}

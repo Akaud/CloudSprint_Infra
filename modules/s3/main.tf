@@ -63,11 +63,11 @@ resource "aws_s3_bucket_policy" "this" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "PublicReadAccess"
-        Effect = "Allow"
+        Sid       = "PublicReadAccess"
+        Effect    = "Allow"
         Principal = "*"
-        Action   = "s3:GetObject"
-        Resource = "${aws_s3_bucket.this.arn}/*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.this.arn}/*"
       },
     ]
   })
@@ -176,6 +176,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     filter {
       prefix = "media/"
     }
+
     transition {
       days          = var.lifecycle_days
       storage_class = "INTELLIGENT_TIERING"

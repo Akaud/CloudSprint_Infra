@@ -1,0 +1,53 @@
+name: Copy Static Files from Wagtail
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # Каждый день в 2:00
+
+jobs:
+  copy-static:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Terraform repo
+      uses: actions/checkout@v4
+      with:
+        path: terraform-repo
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Checkout Wagtail repo
+      uses: actions/checkout@v4
+      with:
+        path: wagtail-repo
+        repository: ${{ secrets.WAGTAIL_REPO }}
+        token: ${{ secrets.WAGTAIL_TOKEN }}
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd wagtail-repo
+        pip install -r requirements.txt
+    
+    - name: Collect static files
+      run: |
+        cd wagtail-repo
+        python manage.py collectstatic --noinput
+    
+    - name: Copy static files to Terraform repo
+      run: |
+        cp -r wagtail-repo/staticfiles/* terraform-repo/modules/s3/static/
+        cp -r wagtail-repo/media/* terraform-repo/modules/s3/media/
+    
+    - name: Commit and push changes
+      run: |
+        cd terraform-repo
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+        git add .
+        git commit -m "Update static files from Wagtail" || exit 0
+        git push

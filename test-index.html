@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - Terraform Infrastructure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Terraform Infrastructure Test</h1>
+        
+        <div class="status">
+            <h2 class="success">✅ Infrastructure Successfully Deployed!</h2>
+            <p>Your AWS infrastructure is now running with:</p>
+        </div>
+        
+        <div class="info">
+            <h3>🏗️ What's Running:</h3>
+            <ul>
+                <li><strong>VPC</strong> with public and private subnets</li>
+                <li><strong>Aurora PostgreSQL</strong> database cluster</li>
+                <li><strong>ECS Fargate</strong> cluster and service</li>
+                <li><strong>S3 buckets</strong> for static and media files</li>
+                <li><strong>CloudFront</strong> CDN distribution</li>
+                <li><strong>ECR</strong> container registry</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <h3>🔧 Next Steps:</h3>
+            <ol>
+                <li>Configure GitHub Actions pipeline</li>
+                <li>Deploy your Wagtail application</li>
+                <li>Test the complete system</li>
+            </ol>
+        </div>
+        
+        <div class="status">
+            <p><strong>🎉 Congratulations! Your infrastructure is ready!</strong></p>
+        </div>
+    </div>
+</body>
+</html>
