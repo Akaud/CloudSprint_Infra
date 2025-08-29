@@ -176,6 +176,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     filter {
       prefix = "media/"
     }
+    
     transition {
       days          = var.lifecycle_days
       storage_class = "INTELLIGENT_TIERING"

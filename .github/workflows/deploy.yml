@@ -21,8 +21,10 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-         aws-region: ${{ secrets.AWS_REGION }}
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+         aws-region: ${{ vars.AWS_REGION }}
 
       - name: Checkout Wagtail repository
         uses: actions/checkout@v4
@@ -46,24 +48,14 @@ jobs:
           cd wagtail-source
           python manage.py collectstatic --noinput
 
-      - name: Create sync directories
-        run: |
-          mkdir -p modules/s3/static
-          mkdir -p modules/s3/media
-
-      - name: Copy files from Wagtail
-        run: |
-          cp -r wagtail-source/staticfiles/* modules/s3/static/
-          cp -r wagtail-source/media/* modules/s3/media/
-
       - name: Sync static files to Static bucket
         run: |
-          aws s3 sync modules/s3/static/ s3://${{ secrets.S3_STATIC_BUCKET_NAME }}/ --delete
+          aws s3 sync wagtail-source/staticfiles/ s3://${{ vars.S3_STATIC_BUCKET_NAME }}/ --delete
           echo "✅ Static files synced to Static bucket"
 
       - name: Sync media files to Media bucket
         run: |
-          aws s3 sync modules/s3/media/ s3://${{ secrets.S3_MEDIA_BUCKET_NAME }}/ --delete
+          aws s3 sync wagtail-source/media/ s3://${{ vars.S3_MEDIA_BUCKET_NAME }}/ --delete
           echo "✅ Media files synced to Media bucket"
 
       - name: Invalidate CloudFront cache
