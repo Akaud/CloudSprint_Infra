@@ -61,12 +61,12 @@ jobs:
 
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
           echo "✅ CloudFront cache invalidated"
 
       - name: Success message
         run: |
           echo "🚀 Deployment completed successfully!"
-          echo "📁 Static files uploaded to: ${{ vars.S3_STATIC_BUCKET_NAME }}"
-          echo "📁 Media files uploaded to: ${{ vars.S3_MEDIA_BUCKET_NAME }}"
-          echo "☁️ CloudFront updated: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "📁 Static files uploaded to: ${{ secrets.S3_STATIC_BUCKET_NAME }}"
+          echo "📁 Media files uploaded to: ${{ secrets.S3_MEDIA_BUCKET_NAME }}"
+          echo "☁️ CloudFront updated: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
