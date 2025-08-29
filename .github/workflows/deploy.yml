@@ -29,7 +29,8 @@ jobs:
       - name: Checkout Wagtail repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ secrets.WAGTAIL_REPO }}
+          repository: ${{ vars.WAGTAIL_REPO }}
+          ref: develop/landing-page
           token: ${{ secrets.WAGTAIL_TOKEN }}
           path: wagtail-source
 
