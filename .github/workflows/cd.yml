@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 'release'
-
+  workflow_dispatch:
 jobs:
   terraform_apply:
     name: 'Terraform Apply'

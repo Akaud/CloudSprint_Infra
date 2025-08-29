@@ -34,6 +34,17 @@ jobs:
           token: ${{ secrets.WAGTAIL_TOKEN }}
           path: wagtail-source
 
+      - name: Debug - Check what was cloned
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Root directory contents ==="
+          ls -la
+          echo "=== Wagtail source directory contents ==="
+          ls -la wagtail-source/
+          echo "=== Wagtail source subdirectories ==="
+          find wagtail-source/ -type d -maxdepth 2
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -44,10 +55,32 @@ jobs:
           cd wagtail-source
           pip install -r requirements.txt
 
+      - name: Debug - Check Python and dependencies
+        run: |
+          echo "=== Python version ==="
+          python --version
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Requirements file ==="
+          cat requirements.txt
+          echo "=== Installed packages ==="
+          pip list
+
       - name: Collect static files from Wagtail
         run: |
           cd wagtail-source
           python manage.py collectstatic --noinput
+
+      - name: Debug - Check static files collection
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Static files directory ==="
+          ls -la staticfiles/
+          echo "=== Static files count ==="
+          find staticfiles/ -type f | wc -l
+          echo "=== Static files structure ==="
+          find staticfiles/ -type d | head -10
 
       - name: Sync static files to Static bucket
         run: |
