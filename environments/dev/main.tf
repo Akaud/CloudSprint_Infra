@@ -67,3 +67,59 @@ module "aurora" {
     Environment = var.ENV
   }
 }
+
+output "cloudfront_url" {
+  description = "CloudFront distribution URL"
+  value       = module.wagtail_static_site.cloudfront_url
+}
+
+# Outputs for GitHub Actions pipeline
+output "static_bucket_name" {
+  description = "Name of the static S3 bucket"
+  value       = module.wagtail_static_site.bucket_name
+}
+
+output "media_bucket_name" {
+  description = "Name of the media S3 bucket"
+  value       = module.wagtail_media.bucket_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID"
+  value       = module.wagtail_static_site.cloudfront_distribution_id
+}
+
+        # IAM module for GitHub Actions - temporarily commented out due to permissions
+        # module "iam" {
+        #   source = "../../modules/iam"
+        # 
+        #   environment                = var.ENV
+        #   aws_account_id            = "597765856364"  # Your AWS Account ID
+        #   github_repository         = "Akaud/CloudSprint_Infra"  # Your actual repository
+        #   s3_static_bucket_name     = module.wagtail_static_site.bucket_name
+        #   s3_media_bucket_name      = module.wagtail_media.bucket_name
+        #   cloudfront_distribution_id = module.wagtail_static_site.cloudfront_distribution_id
+        # 
+        #   tags = {
+        #     Environment = var.ENV
+        #     Purpose     = "github-actions"
+        #   }
+        # }
+
+        # Outputs for GitHub Actions user - temporarily commented out due to permissions
+        # output "github_actions_user_arn" {
+        #   description = "ARN of the GitHub Actions IAM user"
+        #   value       = module.iam.github_actions_user_arn
+        # }
+        # 
+        # output "github_actions_access_key_id" {
+        #   description = "Access Key ID for GitHub Actions"
+        #   value       = module.iam.github_actions_access_key_id
+        #   sensitive   = true
+        # }
+        # 
+        # output "github_actions_secret_access_key" {
+        #   description = "Secret Access Key for GitHub Actions"
+        #   value       = module.iam.github_actions_secret_access_key
+        #   sensitive   = true
+        # }

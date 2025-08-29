@@ -56,7 +56,7 @@ resource "aws_rds_cluster_parameter_group" "postgres_cluster_parameter_group" {
 
 # Add IAM role for enhanced monitoring
 resource "aws_iam_role" "monitoring_role" {
-  name = "${local.db_identifier}-monitoring-role"
+  name = "${replace(local.db_identifier, "_", "-")}-monitoring-role-${random_string.unique_suffix.result}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -93,7 +93,7 @@ resource "aws_rds_cluster" "postgres_cluster" {
   skip_final_snapshot             = false
   storage_encrypted               = true
   monitoring_interval             = 60
-  monitoring_role_arn             = aws_iam_role.rds_monitoring_role.arn
+  monitoring_role_arn             = aws_iam_role.monitoring_role.arn
 
   tags = var.tags
 }
@@ -107,25 +107,26 @@ resource "aws_rds_cluster_instance" "postgres_instance" {
   engine_version             = "13.9"
   db_subnet_group_name       = aws_db_subnet_group.db_subnet_group.name
   monitoring_interval        = 60
-  monitoring_role_arn        = aws_iam_role.rds_monitoring_role.arn
+  monitoring_role_arn        = aws_iam_role.monitoring_role.arn
   auto_minor_version_upgrade = true
   publicly_accessible        = false
 
   tags = var.tags
 }
 
-resource "aws_secretsmanager_secret" "db_secret" {
-  name        = "${replace(local.db_identifier, "_", "-")}-secret-${random_string.unique_suffix.result}"
-  description = "DB credentials for RDS Proxy"
-}
-
-resource "aws_secretsmanager_secret_version" "db_secret_version" {
-  secret_id = aws_secretsmanager_secret.db_secret.id
-  secret_string = jsonencode({
-    "username" : var.db_username,
-    "password" : random_password.db_password.result
-  })
-}
+# Temporarily commented out due to deletion conflict
+# resource "aws_secretsmanager_secret" "db_secret" {
+#   name        = "${replace(local.db_identifier, "_", "-")}-secret-${random_string.unique_suffix.result}"
+#   description = "DB credentials for RDS Proxy"
+# }
+# 
+# resource "aws_secretsmanager_secret_version" "db_secret_version" {
+#   secret_id = aws_secretsmanager_secret.db_secret.id
+#   secret_string = jsonencode({
+#     "username" : var.db_username,
+#     "password" : random_password.db_password.result
+#   })
+# }
 
 resource "aws_iam_role" "db_proxy_role" {
   name = "${replace(local.db_identifier, "_", "-")}-proxy-role-${random_string.unique_suffix.result}"
@@ -148,43 +149,25 @@ resource "aws_iam_role_policy_attachment" "db_proxy_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
 
-# IAM role for RDS monitoring
-resource "aws_iam_role" "rds_monitoring_role" {
-  name = "${replace(local.db_identifier, "_", "-")}-monitoring-role-${random_string.unique_suffix.result}"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "monitoring.rds.amazonaws.com"
-        }
-      },
-    ]
-  })
-}
 
-resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
-  role       = aws_iam_role.rds_monitoring_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-}
 
-resource "aws_db_proxy" "db_proxy" {
-  name                   = local.db_proxy_name
-  engine_family          = "POSTGRESQL"
-  vpc_security_group_ids = [aws_security_group.db_security_group.id]
-  vpc_subnet_ids         = var.private_subnet_ids
-  role_arn               = aws_iam_role.db_proxy_role.arn
-  auth {
-    auth_scheme = "SECRETS"
-    secret_arn  = aws_secretsmanager_secret.db_secret.arn
-  }
-  require_tls = true
-}
+# Temporarily commented out due to secret dependency
+# resource "aws_db_proxy" "db_proxy" {
+#   name                   = local.db_proxy_name
+#   engine_family          = "POSTGRESQL"
+#   vpc_security_group_ids = [aws_security_group.db_security_group.id]
+#   vpc_subnet_ids         = var.private_subnet_ids
+#   role_arn               = aws_iam_role.db_proxy_role.arn
+#   auth {
+#     auth_scheme = "SECRETS"
+#     secret_arn  = aws_secretsmanager_secret.db_secret.arn
+#   }
+#   require_tls = true
+# }
 
-resource "aws_db_proxy_target" "db_proxy_target" {
-  db_proxy_name         = aws_db_proxy.db_proxy.name
-  db_cluster_identifier = aws_rds_cluster.postgres_cluster.id
-  target_group_name     = "default"
-}
+# Temporarily commented out due to proxy dependency
+# resource "aws_db_proxy_target" "db_proxy_target" {
+#   db_proxy_name         = aws_db_proxy.db_proxy.name
+#   db_cluster_identifier = aws_rds_cluster.postgres_cluster.id
+#   target_group_name     = "default"
+# }
