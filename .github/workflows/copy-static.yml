@@ -2,8 +2,6 @@ name: Copy Static Files from Wagtail
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'  # Каждый день в 2:00
 
 jobs:
   copy-static:
